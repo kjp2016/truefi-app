@@ -1,0 +1,25 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-west2-docker.pkg.dev/river-sky-455001-j1/truefi-images/penny-api:$COMMIT_SHA', '-f', 'v1TrueFi/Dockerfile', './v1TrueFi']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-west2-docker.pkg.dev/river-sky-455001-j1/truefi-images/penny-api:$COMMIT_SHA']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'truefi-api-service'
+      - '--image'
+      - 'us-west2-docker.pkg.dev/river-sky-455001-j1/truefi-images/penny-api:$COMMIT_SHA'
+      - '--region'
+      - 'us-west2'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-secrets=OPENAI_API_KEY=OPENAI_API_KEY:latest,DATABASE_URI=DATABASE_URI:4'
+      - '--add-cloudsql-instances'
+      - 'river-sky-455001-j1:us-central1:truefi-ai-db'
+      - '--timeout=300s'
+images:
+  - 'us-west2-docker.pkg.dev/river-sky-455001-j1/truefi-images/penny-api:$COMMIT_SHA'
+logsBucket: 'gs://river-sky-455001-j1-build-logs'
